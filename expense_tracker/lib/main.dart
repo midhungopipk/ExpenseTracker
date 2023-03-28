@@ -1,12 +1,17 @@
 import 'package:expense_tracker/widgets/new_transaction.dart';
 import 'package:expense_tracker/widgets/transaction_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import './widgets/new_transaction.dart';
 import './models/transaction.dart';
 import './widgets/transaction_list.dart';
 import './widgets/chart.dart';
 
 void main() {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations(
+  //     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  //Restricting the app from landscape mode
   runApp(MyApp());
 }
 
@@ -16,17 +21,23 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Personel Expenses',
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.purple,
+        ).copyWith(
+          secondary: Colors.amber,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.purple, // background (button) color
+            foregroundColor: Colors.white, // foreground (text) color
+          ),
+        ),
         textTheme: const TextTheme(
           titleMedium: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
               // color: Colors.purple,
               fontFamily: 'OpenSans'),
-        ),
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.purple,
-        ).copyWith(
-          secondary: Colors.amber,
         ),
         fontFamily: 'QuickSand',
         appBarTheme: AppBarTheme(
@@ -70,15 +81,21 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  void _addnewTransaction(String title, double amount) {
+  void _addnewTransaction(String title, double amount, DateTime choosenDate) {
     final newTx = Transaction(
         id: DateTime.now().toString(),
         title: title,
         amount: amount,
-        date: DateTime.now());
+        date: choosenDate);
 
     setState(() {
       _userTransactions.add(newTx);
+    });
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransactions.removeWhere((tx) => tx.id == id);
     });
   }
 
@@ -92,24 +109,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Personel Expenses',
-        ),
-        actions: [
-          IconButton(
-              onPressed: () => _startAddNewTransaction(context),
-              icon: Icon(Icons.add)),
-        ],
+    final appBar = AppBar(
+      title: const Text(
+        'Personel Expenses',
       ),
+      actions: [
+        IconButton(
+            onPressed: () => _startAddNewTransaction(context),
+            icon: Icon(Icons.add)),
+      ],
+    );
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           //mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            Chart(_recentTransactions),
-            TransactionList(_userTransactions),
+            Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                child: Chart(_recentTransactions)),
+            Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.7,
+                child: TransactionList(_userTransactions, _deleteTransaction)),
           ],
         ),
       ),
