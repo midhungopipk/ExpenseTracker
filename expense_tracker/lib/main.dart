@@ -33,14 +33,15 @@ class MyApp extends StatelessWidget {
           ),
         ),
         textTheme: const TextTheme(
-          titleMedium: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              // color: Colors.purple,
-              fontFamily: 'OpenSans'),
-        ),
+            titleMedium: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                // color: Colors.purple,
+                fontFamily: 'OpenSans'),
+            titleSmall: TextStyle(
+                fontSize: 18, color: Colors.white, fontFamily: 'OpenSans')),
         fontFamily: 'QuickSand',
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           titleTextStyle: TextStyle(
               fontFamily: 'OpenSans',
               fontSize: 20,
@@ -57,7 +58,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String titleInput = '';
 
   String amountInput = '';
@@ -108,6 +109,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
       title: const Text(
@@ -119,26 +138,34 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.add)),
       ],
     );
+
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       appBar: appBar,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          //mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            Container(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            //mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Container(
                 height: (MediaQuery.of(context).size.height -
                         appBar.preferredSize.height -
                         MediaQuery.of(context).padding.top) *
                     0.3,
-                child: Chart(_recentTransactions)),
-            Container(
-                height: (MediaQuery.of(context).size.height -
-                        appBar.preferredSize.height -
-                        MediaQuery.of(context).padding.top) *
-                    0.7,
-                child: TransactionList(_userTransactions, _deleteTransaction)),
-          ],
+                child: Chart(_recentTransactions),
+              ),
+              Container(
+                  height: (MediaQuery.of(context).size.height -
+                          appBar.preferredSize.height -
+                          MediaQuery.of(context).padding.top) *
+                      0.7,
+                  child:
+                      TransactionList(_userTransactions, _deleteTransaction)),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
